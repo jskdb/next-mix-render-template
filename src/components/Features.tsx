@@ -31,6 +31,16 @@ const Features = () => {
       title: "Edge Functions",
       description: "Run code in Edge Runtime, no server management required",
       demoLink: "/edge-functions"
+    },
+    {
+      title: "API Routes Demo",
+      description: "Demonstrate Next.js API Routes with GET and POST requests",
+      demoLink: "/api-demo"
+    },
+    {
+      title: "Edge API Demo",
+      description: "Demonstrate Edge Runtime API with ultra-low latency",
+      demoLink: "/edge-api-demo"
     }
   ]
 
