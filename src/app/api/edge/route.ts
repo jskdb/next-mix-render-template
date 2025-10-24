@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json(processed)
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Invalid JSON payload' },
       { status: 400 }

@@ -2,17 +2,17 @@
 
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "../../components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { Badge } from "../../components/ui/badge";
 import { Play, Send, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 // This page demonstrates the /api/hello API endpoint
 export default function ApiDemoPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [getResult, setGetResult] = useState<any>(null);
-  const [postResult, setPostResult] = useState<any>(null);
+  const [getResult, setGetResult] = useState<Record<string, unknown> | null>(null);
+  const [postResult, setPostResult] = useState<Record<string, unknown> | null>(null);
   const [name, setName] = useState("World");
   const [postData, setPostData] = useState('{"message": "Hello from client", "userId": 123}');
 
@@ -22,7 +22,7 @@ export default function ApiDemoPage() {
       const res = await fetch(`/api/hello?name=${encodeURIComponent(name)}`);
       const data = await res.json();
       setGetResult(data);
-    } catch (error) {
+    } catch {
       setGetResult({ error: "Failed to fetch data" });
     }
     setIsLoading(false);
@@ -40,7 +40,7 @@ export default function ApiDemoPage() {
       });
       const data = await res.json();
       setPostResult(data);
-    } catch (error) {
+    } catch {
       setPostResult({ error: "Failed to send data" });
     }
     setIsLoading(false);
@@ -81,7 +81,7 @@ export default function ApiDemoPage() {
               <label className="text-sm text-gray-300 mb-2 block">Name Parameter:</label>
               <Input
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                 placeholder="Enter your name"
                 className="bg-gray-900 border-gray-600 text-white"
               />
@@ -126,7 +126,7 @@ export default function ApiDemoPage() {
               <label className="text-sm text-gray-300 mb-2 block">JSON Payload:</label>
               <textarea
                 value={postData}
-                onChange={(e) => setPostData(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPostData(e.target.value)}
                 rows={4}
                 className="w-full bg-gray-900 border border-gray-600 rounded p-3 text-white text-sm font-mono"
                 placeholder="Enter JSON data"

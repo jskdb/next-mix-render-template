@@ -3,7 +3,7 @@
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 // This page demonstrates Node.js Functions
 export default function NodeFunctionsPage() {

@@ -2,17 +2,17 @@
 
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "../../components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { Badge } from "../../components/ui/badge";
 import { Play, Send, Loader2, Zap, Globe, Clock, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 
 // This page demonstrates the /api/edge API endpoint
 export default function EdgeApiDemoPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [getResult, setGetResult] = useState<any>(null);
-  const [postResult, setPostResult] = useState<any>(null);
+  const [getResult, setGetResult] = useState<Record<string, unknown> | null>(null);
+  const [postResult, setPostResult] = useState<Record<string, unknown> | null>(null);
   const [name, setName] = useState("World");
   const [postData, setPostData] = useState('{"message": "Hello from Edge", "location": "global"}');
 
@@ -27,7 +27,7 @@ export default function EdgeApiDemoPage() {
         ...data,
         responseTime: `${(endTime - startTime).toFixed(2)}ms`
       });
-    } catch (error) {
+    } catch {
       setGetResult({ error: "Failed to fetch data" });
     }
     setIsLoading(false);
@@ -50,7 +50,7 @@ export default function EdgeApiDemoPage() {
         ...data,
         responseTime: `${(endTime - startTime).toFixed(2)}ms`
       });
-    } catch (error) {
+    } catch {
       setPostResult({ error: "Failed to send data" });
     }
     setIsLoading(false);
@@ -110,7 +110,7 @@ export default function EdgeApiDemoPage() {
               <label className="text-sm text-gray-300 mb-2 block">Name Parameter:</label>
               <Input
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                 placeholder="Enter your name"
                 className="bg-gray-900 border-gray-600 text-white"
               />
@@ -132,11 +132,11 @@ export default function EdgeApiDemoPage() {
               <div className="mt-4">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="text-white font-semibold">Response:</h4>
-                  {getResult.responseTime && (
+                  {getResult.responseTime ? (
                     <Badge variant="secondary" className="bg-green-600 text-white text-xs">
-                      {getResult.responseTime}
+                      {String(getResult.responseTime)}
                     </Badge>
-                  )}
+                  ) : null}
                 </div>
                 <pre className="bg-gray-900 p-4 rounded text-sm text-green-400 overflow-auto max-h-64">
                   {JSON.stringify(getResult, null, 2)}
@@ -163,7 +163,7 @@ export default function EdgeApiDemoPage() {
               <label className="text-sm text-gray-300 mb-2 block">JSON Payload:</label>
               <textarea
                 value={postData}
-                onChange={(e) => setPostData(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPostData(e.target.value)}
                 rows={4}
                 className="w-full bg-gray-900 border border-gray-600 rounded p-3 text-white text-sm font-mono"
                 placeholder="Enter JSON data"
@@ -186,11 +186,11 @@ export default function EdgeApiDemoPage() {
               <div className="mt-4">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="text-white font-semibold">Response:</h4>
-                  {postResult.responseTime && (
+                  {postResult.responseTime ? (
                     <Badge variant="secondary" className="bg-green-600 text-white text-xs">
-                      {postResult.responseTime}
+                      {String(postResult.responseTime)}
                     </Badge>
-                  )}
+                  ) : null}
                 </div>
                 <pre className="bg-gray-900 p-4 rounded text-sm text-green-400 overflow-auto max-h-64">
                   {JSON.stringify(postResult, null, 2)}
