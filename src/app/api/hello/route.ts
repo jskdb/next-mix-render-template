@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
     // 模拟各种错误情况
     if (body.simulateError) {
       switch (body.simulateError) {
+        
         case 'validation':
           return NextResponse.json(
             { 
