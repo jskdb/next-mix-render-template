@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
   // 模拟延迟处理
   if (delay) {
     const delayMs = parseInt(delay, 10)
-    if (delayMs > 10000) {
+    if (delayMs > 35000) {
       return NextResponse.json(
         { error: 'Request Timeout', message: 'Processing time exceeded limit' },
         { status: 408 }
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     // 模拟各种错误情况
     if (body.simulateError) {
       switch (body.simulateError) {
-        
+
         case 'validation':
           return NextResponse.json(
             { 
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
           )
         case 'timeout':
           // 模拟长时间处理导致超时
-          await new Promise(resolve => setTimeout(resolve, 15000))
+          await new Promise(resolve => setTimeout(resolve, 40000))
           break
       }
     }
