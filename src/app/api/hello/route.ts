@@ -101,6 +101,75 @@ export async function POST(request: NextRequest) {
           // 模拟长时间处理导致超时
           await new Promise(resolve => setTimeout(resolve, 40000))
           break
+        case 'large-payload':
+          return NextResponse.json(
+            { 
+              error: 'Payload Too Large', 
+              message: 'Request body exceeds server limits',
+              limit: '6MB',
+              received: '6.2MB',
+              suggestion: 'Consider splitting large data into smaller chunks'
+            },
+            { status: 413 }
+          )
+        case 'large-response':
+          // 生成真实的超过6MB的响应数据
+          console.log('开始生成大响应体...')
+          
+          // 生成约7MB的数据确保超过6MB
+          const chunkSize = 1024 * 1024; // 1MB
+          const numChunks = 7; // 7MB total
+          
+          // 生成不同内容的数据块，避免压缩
+          const dataChunks = [];
+          for (let i = 0; i < numChunks; i++) {
+            // 每个块包含不同的随机数据，避免重复压缩
+            const randomData = Array.from({length: chunkSize / 10}, (_, index) => 
+              `chunk${i}_item${index}_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`
+            ).join('');
+            dataChunks.push(randomData);
+          }
+          
+          // 添加更多随机数据确保超过6MB
+          const additionalData = Array.from({length: 1000}, (_, i) => ({
+            id: i,
+            uuid: `${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`,
+            timestamp: new Date().toISOString(),
+            randomString: Math.random().toString(36).repeat(100), // 长随机字符串
+            data: Array.from({length: 50}, () => Math.random().toString(36).substring(2, 15))
+          }));
+          
+          const responseData = {
+            message: 'Real Large Response Body - Node.js Runtime',
+            warning: 'This response contains over 6MB of actual data',
+            actualSize: '~7MB',
+            timestamp: new Date().toISOString(),
+            runtime: 'nodejs',
+            dataChunks: dataChunks,
+            additionalRecords: additionalData,
+            metadata: {
+              totalChunks: numChunks,
+              chunkSize: '1MB each',
+              additionalRecords: additionalData.length,
+              estimatedSize: '7MB+',
+              purpose: 'Real large response testing in Node.js Runtime',
+              capabilities: [
+                'Can handle large response bodies',
+                'Memory management by Node.js',
+                'Suitable for data export/download',
+                'Real data generation'
+              ],
+              generationInfo: {
+                chunksGenerated: numChunks,
+                recordsGenerated: additionalData.length,
+                compressionResistant: true,
+                uniqueContent: true
+              }
+            }
+          };
+          
+          console.log('大响应体生成完成，准备返回...')
+          return NextResponse.json(responseData)
       }
     }
     

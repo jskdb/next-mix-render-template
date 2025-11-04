@@ -153,6 +153,65 @@ export async function POST(request: NextRequest) {
             },
             { status: 503 }
           )
+        case 'large-payload':
+          return NextResponse.json(
+            { 
+              error: 'Edge Payload Limit Exceeded', 
+              message: 'Request body far exceeds Edge Runtime limits',
+              limit: '1MB (Edge)',
+              received: '6.2MB',
+              suggestion: 'Use Node.js runtime for large payloads or implement streaming'
+            },
+            { status: 413 }
+          )
+        case 'large-response':
+          // 尝试在Edge Runtime中生成大响应体（会导致错误）
+          try {
+            console.log('Edge Runtime: 尝试生成大响应体...')
+            
+            // 尝试生成更大的数据来触发Edge Runtime限制
+            const chunkSize = 1024 * 1024; // 1MB
+            const numChunks = 50; // 50MB total - 这应该会触发限制
+            
+            const dataChunks = [];
+            for (let i = 0; i < numChunks; i++) {
+              const randomData = Array.from({length: chunkSize / 10}, (_, index) => 
+                `edge_chunk${i}_item${index}_${Math.random().toString(36).substring(2, 15)}`
+              ).join('');
+              dataChunks.push(randomData);
+            }
+            
+            return NextResponse.json({
+              message: 'Edge Runtime Large Response (Unexpected Success)',
+              warning: 'This should have failed in Edge Runtime with 50MB data',
+              size: '~50MB',
+              timestamp: new Date().toISOString(),
+              runtime: 'edge',
+              dataChunks: dataChunks,
+              note: 'If you see this, Edge Runtime handled the massive 50MB response'
+            });
+            
+          } catch (error) {
+            // Edge Runtime 限制导致的错误
+            return NextResponse.json(
+              { 
+                error: 'Edge Runtime Memory/Size Limit Exceeded', 
+                message: 'Failed to generate large response in Edge Runtime',
+                actualError: error instanceof Error ? error.message : 'Unknown error',
+                limit: '~1MB (Edge Runtime)',
+                attempted: '6MB',
+                reason: 'Edge Runtime has strict memory and response size limits',
+                alternatives: [
+                  'Use Node.js runtime for large responses',
+                  'Implement response streaming',
+                  'Use external storage with URLs',
+                  'Paginate large datasets'
+                ],
+                recommendation: 'Switch to Node.js runtime for this use case'
+              },
+              { status: 507 }
+            )
+          }
       }
     }
     

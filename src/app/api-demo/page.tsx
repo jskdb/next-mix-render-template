@@ -234,6 +234,8 @@ export default function ApiDemoPage() {
                   <option value="database">Database Error (503)</option>
                   <option value="memory">Memory Error (507)</option>
                   <option value="timeout">Timeout Error</option>
+                  <option value="large-payload">Large Payload (413)</option>
+                  <option value="large-response">Real 7MB Response</option>
                 </select>
               </div>
             </div>
@@ -347,6 +349,8 @@ export default function ApiDemoPage() {
                   <li>• <strong>数据库错误</strong>: 模拟数据库连接超时</li>
                   <li>• <strong>内存错误</strong>: 模拟服务器内存不足</li>
                   <li>• <strong>超时错误</strong>: 模拟长时间处理导致的超时</li>
+                  <li>• <strong>大请求体</strong>: 自动生成6MB数据测试请求体大小限制</li>
+                  <li>• <strong>真实大响应体</strong>: 服务器实际生成并返回7MB+数据</li>
                   <li>• <strong>JSON 错误</strong>: 输入无效 JSON 测试解析错误</li>
                   <li>• <strong>延迟字段</strong>: 在 JSON 中添加 &quot;delay&quot;: 3000 测试处理延迟</li>
                 </ul>

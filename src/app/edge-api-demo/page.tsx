@@ -256,6 +256,8 @@ export default function EdgeApiDemoPage() {
                   <option value="size">Payload Too Large (413)</option>
                   <option value="execution">Execution Timeout (504)</option>
                   <option value="region">Region Unavailable (503)</option>
+                  <option value="large-payload">6MB Payload (413)</option>
+                  <option value="large-response">Real 6MB Response Test</option>
                 </select>
               </div>
             </div>
@@ -510,6 +512,8 @@ export default function EdgeApiDemoPage() {
                   <li>• <strong>负载过大</strong>: 模拟请求体超过 Edge Runtime 限制</li>
                   <li>• <strong>执行超时</strong>: 模拟函数执行时间过长</li>
                   <li>• <strong>区域不可用</strong>: 模拟特定边缘区域服务中断</li>
+                  <li>• <strong>6MB请求体</strong>: 自动生成6MB数据测试Edge Runtime严格限制</li>
+                  <li>• <strong>真实6MB响应体</strong>: 尝试在Edge Runtime中生成大响应（可能失败）</li>
                   <li>• <strong>JSON 错误</strong>: 输入无效 JSON 测试解析错误</li>
                   <li>• <strong>延迟字段</strong>: 在 JSON 中添加 &quot;delay&quot;: 2000 测试处理延迟</li>
                 </ul>
