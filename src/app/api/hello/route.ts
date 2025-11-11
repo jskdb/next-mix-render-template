@@ -113,62 +113,39 @@ export async function POST(request: NextRequest) {
             { status: 413 }
           )
         case 'large-response':
-          // 生成真实的超过6MB的响应数据
-          console.log('开始生成大响应体...')
+          // 快速生成超过6MB的响应数据
+          console.log('快速生成大响应体...')
           
-          // 生成约7MB的数据确保超过6MB
-          const chunkSize = 1024 * 1024; // 1MB
-          const numChunks = 7; // 7MB total
+          // 使用更简单快速的方法生成大数据
+          const baseString = 'A'.repeat(1024); // 1KB base string
+          const megabyteData = baseString.repeat(1024); // 1MB string
           
-          // 生成不同内容的数据块，避免压缩
-          const dataChunks = [];
-          for (let i = 0; i < numChunks; i++) {
-            // 每个块包含不同的随机数据，避免重复压缩
-            const randomData = Array.from({length: chunkSize / 10}, (_, index) => 
-              `chunk${i}_item${index}_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`
-            ).join('');
-            dataChunks.push(randomData);
+          // 快速生成15MB数据 - 使用重复模式但添加标识符避免过度压缩
+          const largeDataArray = [];
+          for (let i = 0; i < 15; i++) {
+            largeDataArray.push(`CHUNK_${i}_START_` + megabyteData + `_CHUNK_${i}_END`);
           }
           
-          // 添加更多随机数据确保超过6MB
-          const additionalData = Array.from({length: 1000}, (_, i) => ({
-            id: i,
-            uuid: `${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`,
-            timestamp: new Date().toISOString(),
-            randomString: Math.random().toString(36).repeat(100), // 长随机字符串
-            data: Array.from({length: 50}, () => Math.random().toString(36).substring(2, 15))
-          }));
-          
-          const responseData = {
-            message: 'Real Large Response Body - Node.js Runtime',
-            warning: 'This response contains over 6MB of actual data',
-            actualSize: '~7MB',
-            timestamp: new Date().toISOString(),
-            runtime: 'nodejs',
-            dataChunks: dataChunks,
-            additionalRecords: additionalData,
-            metadata: {
-              totalChunks: numChunks,
-              chunkSize: '1MB each',
-              additionalRecords: additionalData.length,
-              estimatedSize: '7MB+',
-              purpose: 'Real large response testing in Node.js Runtime',
-              capabilities: [
-                'Can handle large response bodies',
-                'Memory management by Node.js',
-                'Suitable for data export/download',
-                'Real data generation'
-              ],
-              generationInfo: {
-                chunksGenerated: numChunks,
-                recordsGenerated: additionalData.length,
-                compressionResistant: true,
-                uniqueContent: true
-              }
-            }
+          // 添加少量元数据
+          const metadata = {
+            chunks: 15,
+            chunkSize: '1MB each',
+            totalSize: '15MB+',
+            generatedAt: new Date().toISOString(),
+            method: 'fast_generation'
           };
           
-          console.log('大响应体生成完成，准备返回...')
+          const responseData = {
+            message: 'Fast Large Response - Node.js Runtime',
+            status: 'success',
+            size: '~15MB',
+            timestamp: new Date().toISOString(),
+            runtime: 'nodejs',
+            data: largeDataArray,
+            metadata: metadata
+          };
+          
+          console.log('大响应体快速生成完成')
           return NextResponse.json(responseData)
       }
     }

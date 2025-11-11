@@ -169,26 +169,29 @@ export async function POST(request: NextRequest) {
           try {
             console.log('Edge Runtime: 尝试生成大响应体...')
             
-            // 尝试生成更大的数据来触发Edge Runtime限制
-            const chunkSize = 1024 * 1024; // 1MB
-            const numChunks = 50; // 50MB total - 这应该会触发限制
+            // 快速生成大数据测试Edge Runtime限制
+            const baseString = 'E'.repeat(1024); // 1KB base string
+            const megabyteData = baseString.repeat(1024); // 1MB string
             
-            const dataChunks = [];
-            for (let i = 0; i < numChunks; i++) {
-              const randomData = Array.from({length: chunkSize / 10}, (_, index) => 
-                `edge_chunk${i}_item${index}_${Math.random().toString(36).substring(2, 15)}`
-              ).join('');
-              dataChunks.push(randomData);
+            // 生成10MB数据测试Edge Runtime
+            const largeDataArray = [];
+            for (let i = 0; i < 10; i++) {
+              largeDataArray.push(`EDGE_CHUNK_${i}_` + megabyteData + `_END_${i}`);
             }
             
             return NextResponse.json({
-              message: 'Edge Runtime Large Response (Unexpected Success)',
-              warning: 'This should have failed in Edge Runtime with 50MB data',
-              size: '~50MB',
+              message: 'Edge Runtime Large Response Test',
+              status: 'success',
+              size: '~10MB',
               timestamp: new Date().toISOString(),
               runtime: 'edge',
-              dataChunks: dataChunks,
-              note: 'If you see this, Edge Runtime handled the massive 50MB response'
+              data: largeDataArray,
+              metadata: {
+                chunks: 10,
+                chunkSize: '1MB each',
+                totalSize: '10MB',
+                note: 'Testing Edge Runtime large response capability'
+              }
             });
             
           } catch (error) {
