@@ -15,20 +15,35 @@ export default function EdgeApiDemoPage() {
   const [postResult, setPostResult] = useState<Record<string, unknown> | null>(null);
   const [name, setName] = useState("World");
   const [postData, setPostData] = useState('{"message": "Hello from Edge", "location": "global"}');
+  const [delay, setDelay] = useState("");
+  const [errorType, setErrorType] = useState("");
+  const [postErrorType, setPostErrorType] = useState("");
 
   const handleGetRequest = async () => {
     setIsLoading(true);
     const startTime = performance.now();
     try {
-      const res = await fetch(`/api/edge?name=${encodeURIComponent(name)}`);
+      const params = new URLSearchParams({ name });
+      if (delay) params.append('delay', delay);
+      if (errorType) params.append('error', errorType);
+      
+      const res = await fetch(`/api/edge?${params.toString()}`);
       const data = await res.json();
       const endTime = performance.now();
+      
       setGetResult({
         ...data,
+        responseTime: `${(endTime - startTime).toFixed(2)}ms`,
+        statusCode: res.status,
+        statusText: res.statusText
+      });
+    } catch (error) {
+      const endTime = performance.now();
+      setGetResult({ 
+        error: "Network Error", 
+        message: error instanceof Error ? error.message : "Failed to fetch data",
         responseTime: `${(endTime - startTime).toFixed(2)}ms`
       });
-    } catch {
-      setGetResult({ error: "Failed to fetch data" });
     }
     setIsLoading(false);
   };
@@ -37,21 +52,38 @@ export default function EdgeApiDemoPage() {
     setIsLoading(true);
     const startTime = performance.now();
     try {
+      let requestBody = postData;
+      
+      // 添加错误模拟到请求体
+      if (postErrorType) {
+        const bodyObj = JSON.parse(postData);
+        bodyObj.simulateError = postErrorType;
+        requestBody = JSON.stringify(bodyObj, null, 2);
+      }
+      
       const res = await fetch("/api/edge", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: postData,
+        body: requestBody,
       });
       const data = await res.json();
       const endTime = performance.now();
+      
       setPostResult({
         ...data,
+        responseTime: `${(endTime - startTime).toFixed(2)}ms`,
+        statusCode: res.status,
+        statusText: res.statusText
+      });
+    } catch (error) {
+      const endTime = performance.now();
+      setPostResult({ 
+        error: "Network Error", 
+        message: error instanceof Error ? error.message : "Failed to send data",
         responseTime: `${(endTime - startTime).toFixed(2)}ms`
       });
-    } catch {
-      setPostResult({ error: "Failed to send data" });
     }
     setIsLoading(false);
   };
@@ -106,14 +138,43 @@ export default function EdgeApiDemoPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm text-gray-300 mb-2 block">Name Parameter:</label>
-              <Input
-                value={name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-                placeholder="Enter your name"
-                className="bg-gray-900 border-gray-600 text-white"
-              />
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-gray-300 mb-2 block">Name Parameter:</label>
+                <Input
+                  value={name}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                  placeholder="Enter your name"
+                  className="bg-gray-900 border-gray-600 text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm text-gray-300 mb-2 block">Delay (ms, max 5000):</label>
+                <Input
+                  value={delay}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDelay(e.target.value)}
+                  placeholder="e.g., 1000"
+                  type="number"
+                  max="5000"
+                  className="bg-gray-900 border-gray-600 text-white"
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm text-gray-300 mb-2 block">Simulate Edge Error:</label>
+                <select
+                  value={errorType}
+                  onChange={(e) => setErrorType(e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white"
+                >
+                  <option value="">No Error</option>
+                  <option value="edge-limit">Edge Limit (504)</option>
+                  <option value="memory">Memory Limit (507)</option>
+                  <option value="geo">Geolocation Error (503)</option>
+                  <option value="cdn">CDN Error (502)</option>
+                </select>
+              </div>
             </div>
             <Button
               onClick={handleGetRequest}
@@ -137,8 +198,20 @@ export default function EdgeApiDemoPage() {
                       {String(getResult.responseTime)}
                     </Badge>
                   ) : null}
+                  {getResult.statusCode && typeof getResult.statusCode === 'number' ? (
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-white text-xs ${
+                        getResult.statusCode >= 400 ? 'bg-red-600' : 'bg-yellow-600'
+                      }`}
+                    >
+                      {getResult.statusCode}
+                    </Badge>
+                  ) : null}
                 </div>
-                <pre className="bg-gray-900 p-4 rounded text-sm text-green-400 overflow-auto max-h-64">
+                <pre className={`p-4 rounded text-sm overflow-auto max-h-64 ${
+                  getResult.error ? 'bg-red-900/20 text-red-400' : 'bg-gray-900 text-green-400'
+                }`}>
                   {JSON.stringify(getResult, null, 2)}
                 </pre>
               </div>
@@ -159,15 +232,34 @@ export default function EdgeApiDemoPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm text-gray-300 mb-2 block">JSON Payload:</label>
-              <textarea
-                value={postData}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPostData(e.target.value)}
-                rows={4}
-                className="w-full bg-gray-900 border border-gray-600 rounded p-3 text-white text-sm font-mono"
-                placeholder="Enter JSON data"
-              />
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-gray-300 mb-2 block">JSON Payload:</label>
+                <textarea
+                  value={postData}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPostData(e.target.value)}
+                  rows={4}
+                  className="w-full bg-gray-900 border border-gray-600 rounded p-3 text-white text-sm font-mono"
+                  placeholder="Enter JSON data"
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm text-gray-300 mb-2 block">Simulate Edge Error:</label>
+                <select
+                  value={postErrorType}
+                  onChange={(e) => setPostErrorType(e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white"
+                >
+                  <option value="">No Error</option>
+                  <option value="package">Package Error (501)</option>
+                  <option value="size">Payload Too Large (413)</option>
+                  <option value="execution">Execution Timeout (504)</option>
+                  <option value="region">Region Unavailable (503)</option>
+                  <option value="large-payload">6MB Payload (413)</option>
+                  <option value="large-response">Real 6MB Response Test</option>
+                </select>
+              </div>
             </div>
             <Button
               onClick={handlePostRequest}
@@ -191,8 +283,20 @@ export default function EdgeApiDemoPage() {
                       {String(postResult.responseTime)}
                     </Badge>
                   ) : null}
+                  {postResult.statusCode && typeof postResult.statusCode === 'number' ? (
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-white text-xs ${
+                        postResult.statusCode >= 400 ? 'bg-red-600' : 'bg-yellow-600'
+                      }`}
+                    >
+                      {postResult.statusCode}
+                    </Badge>
+                  ) : null}
                 </div>
-                <pre className="bg-gray-900 p-4 rounded text-sm text-green-400 overflow-auto max-h-64">
+                <pre className={`p-4 rounded text-sm overflow-auto max-h-64 ${
+                  postResult.error ? 'bg-red-900/20 text-red-400' : 'bg-gray-900 text-green-400'
+                }`}>
                   {JSON.stringify(postResult, null, 2)}
                 </pre>
               </div>
@@ -370,6 +474,58 @@ export default function EdgeApiDemoPage() {
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Error Testing Guide */}
+      <div className="container mx-auto px-4 mb-20">
+        <Card className="bg-gray-800/50 backdrop-blur-sm border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-400" />
+              错误测试指南
+            </CardTitle>
+            <CardDescription className="text-gray-300">
+              了解如何测试各种错误情况和性能限制
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="text-white font-semibold mb-3">GET 请求测试</h4>
+                <ul className="text-gray-300 text-sm space-y-2">
+                  <li>• <strong>延迟测试</strong>: 输入 1000-5000ms 体验不同响应时间</li>
+                  <li>• <strong>超时测试</strong>: 输入 &gt;5000ms 触发 Edge 超时限制</li>
+                  <li>• <strong>边缘限制</strong>: 选择 &quot;Edge Limit&quot; 模拟执行时间超限</li>
+                  <li>• <strong>内存错误</strong>: 选择 &quot;Memory Limit&quot; 模拟内存不足</li>
+                  <li>• <strong>地理错误</strong>: 选择 &quot;Geolocation Error&quot; 模拟位置服务失败</li>
+                  <li>• <strong>CDN 错误</strong>: 选择 &quot;CDN Error&quot; 模拟边缘节点故障</li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4 className="text-white font-semibold mb-3">POST 请求测试</h4>
+                <ul className="text-gray-300 text-sm space-y-2">
+                  <li>• <strong>包支持错误</strong>: 模拟 Edge Runtime 不支持的 npm 包</li>
+                  <li>• <strong>负载过大</strong>: 模拟请求体超过 Edge Runtime 限制</li>
+                  <li>• <strong>执行超时</strong>: 模拟函数执行时间过长</li>
+                  <li>• <strong>区域不可用</strong>: 模拟特定边缘区域服务中断</li>
+                  <li>• <strong>6MB请求体</strong>: 自动生成6MB数据测试Edge Runtime严格限制</li>
+                  <li>• <strong>真实6MB响应体</strong>: 尝试在Edge Runtime中生成大响应（可能失败）</li>
+                  <li>• <strong>JSON 错误</strong>: 输入无效 JSON 测试解析错误</li>
+                  <li>• <strong>延迟字段</strong>: 在 JSON 中添加 &quot;delay&quot;: 2000 测试处理延迟</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-600/30 rounded">
+              <h5 className="text-yellow-400 font-semibold mb-2">💡 测试建议</h5>
+              <p className="text-gray-300 text-sm">
+                对比 Node.js Runtime 和 Edge Runtime 的错误处理差异：Edge Runtime 更注重性能限制和轻量级处理，
+                而 Node.js Runtime 提供更详细的错误信息和更强的容错能力。
+              </p>
             </div>
           </CardContent>
         </Card>
